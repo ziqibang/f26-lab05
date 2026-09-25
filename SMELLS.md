@@ -11,41 +11,39 @@ Three smells, each in a different part of the module. For each one, fill in all 
 
 ### Smell 1
 
-**The smell.** Name it, using the vocabulary from lecture.
+**The smell.** Duplication over reuse: pricing exists twice 
 
-**Classic or agent-specific.** Which, and why that label. For agent-specific, say which of
-the lecture's three causes produced it.
+**Classic or agent-specific.** agent-specific, caused by missing context
 
-**Where in the code.** File and, where there is one, method.
+**Where in the code.** ReservationManager.calculatePrice/applyDiscounts and ReportGenerator.priceOf implement the same pricing. They even have parallel constant sets under different names: PREMIUM_MULTIPLIER vs PREMIUM_RATE_MULTIPLIER, LONG_BOOKING_MINUTES vs LONG_BOOKING_CUTOFF, and so on.
 
-**The principle it violates.** Name the principle. "This is too big" is not a principle.
+**The principle it violates.** a single source of truth. Pricing knowledge should live in one place.
 
-**What it makes expensive.** A concrete future change, or something that already goes wrong
-today. What breaks first?
+**What it makes expensive.** changing the evening discount means editing both copies. If someone edits only one, revenue() silently stops matching what customers were charged. No test catches that today, because the reporting test only checks that revenue equals the stored priceCents under the current rules.
 
 ### Smell 2
 
-**The smell.**
+**The smell.** God class
 
-**Classic or agent-specific.**
+**Classic or agent-specific.** classic
 
-**Where in the code.**
+**Where in the code.** ReservationManager. Its own docstring admits it does everything: room registry, booking lifecycle, conflict checking, pricing, notification dispatch, receipt formatting, and daily summaries.
+ 
+**The principle it violates.** cohesion (one reason to change).
 
-**The principle it violates.**
-
-**What it makes expensive.**
+**What it makes expensive.** a receipt wording change, a pricing change, and a notification change all land in the same 229-line file. That is divergent change.
 
 ### Smell 3
 
-**The smell.**
+**The smell.** Speculative generality / phantom complexity
 
-**Classic or agent-specific.**
+**Classic or agent-specific.** agent-specific, caused by an underspecified request plus free volume
 
-**Where in the code.**
+**Where in the code.** src/cache/
 
-**The principle it violates.**
+**The principle it violates.** listBookingsForRoom reads from QueryCache, but nothing anywhere calls cache.set, so the cache branch never fires. It is complexity with no function. The notifier registry is a second example: notifierFactory.ts is a plugin registry where ChannelName can only ever be 'email'.
 
-**What it makes expensive.**
+**What it makes expensive.** if someone "turns the cache on" by adding a set, cancelBooking never invalidates it, so formatDailySummary would show cancelled bookings as confirmed for 30 seconds. The cache also hides a dependency on Date.now().
 
 ---
 
