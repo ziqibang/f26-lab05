@@ -51,15 +51,13 @@ Three smells, each in a different part of the module. For each one, fill in all 
 
 One fix, behavior preserved, suite green, zero test edits.
 
-**Which smell you attacked.** And why that one.
+**Which smell you attacked.** I'd fix smell 1: it is the easiest to fix and fixing it now will save a lot of debugging time moving forward
 
-**What changed.** Files and methods you touched, and what the code does differently now.
+**What changed.** extract a pure priceBooking(room, start, end) into a new src/pricing.ts with one set of constants, and have both classes call it.
 
-**What you deliberately did not touch.** Name the scope line you drew and why you drew it
-there. "I ran out of time" is not a scope line.
+**What you deliberately did not touch.** don't change whether revenue() recomputes prices or uses the stored booking.priceCents. That is a real design question (should a rate change rewrite past revenue?), and answering it would change behavior. Also leave calculatePrice as a public method on the manager, delegating to the new function, because the tests call through the manager.
 
-**How you know behavior is preserved.** Point at the suite, say what it actually covers, and
-say what it would not catch.
+**How you know behavior is preserved.** the four pricing tests in booking.test.ts pin base, long, premium, and evening prices, and the revenue tests cross-check against them.
 
 ---
 
